@@ -55,9 +55,10 @@ fn function(func: ItemFn) -> TokenStream {
     let wrapper_name = Ident::new(&wrapper_name, name.span());
 
     quote! {
+        #[derive(Debug)]
         struct #handle_name {
-            __ptr: *mut #wrapper_name,
-            __collect: *mut (::core::sync::atomic::AtomicU8, *mut dyn ::autotask::Task),
+            __ptr: *const #wrapper_name,
+            __atomic: *const ::core::sync::atomic::AtomicU8,
         }
 
 
@@ -71,7 +72,7 @@ fn function(func: ItemFn) -> TokenStream {
             pub fn get(self) -> #ret {
                 let value = ::core::mem::ManuallyDrop::new(self);
 
-                let state_ptr = &unsafe { &*value.__collect }.0;
+                let state_ptr = &unsafe { &*value.__atomic };
                 if state_ptr.load(::core::sync::atomic::Ordering::Acquire) == 0 {
                     ::autotask::Tasker::exhaust()
                 }
@@ -81,8 +82,7 @@ fn function(func: ItemFn) -> TokenStream {
                 let data_ptr = unsafe { value.__ptr.read() };
                 let result = unsafe { data_ptr.complete };
 
-                drop(unsafe { ::std::boxed::Box::from_raw(value.__collect) });
-                drop(unsafe { ::std::boxed::Box::from_raw(value.__ptr) });
+                state_ptr.store(3, ::core::sync::atomic::Ordering::SeqCst);
 
                 result
             }
@@ -94,10 +94,10 @@ fn function(func: ItemFn) -> TokenStream {
                 let __ptr = self.__ptr;
                 self.__ptr = core::ptr::null_mut();
 
-                let __collect = self.__collect;
-                self.__collect = core::ptr::null_mut();
+                let __atomic = self.__atomic;
+                self.__atomic = core::ptr::null_mut();
 
-                let owned = #handle_name { __ptr, __collect };
+                let owned = #handle_name { __ptr, __atomic };
 
                 let _ = owned.get();
             }
@@ -116,14 +116,17 @@ fn function(func: ItemFn) -> TokenStream {
             }
         }
 
+
         #vis fn #name(#(#inputs_nums: #inputs_ty),*) -> #handle_name {
             let data = ::autotask::Tasker::add_task(#wrapper_name { 
                 args: (#(#inputs_nums,)*)
             });
 
+            dbg!(unsafe { (*data.1).args });
+
             #handle_name {
-                __ptr: data.0,
-                __collect: data.1,
+                __atomic: data.0,
+                __ptr: data.1,
             }
         }
     }.into()

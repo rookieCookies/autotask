@@ -1,12 +1,19 @@
 [package]
 name = "autotask-macros"
-version = "0.1.0"
 edition = "2021"
+version = "0.1.0"
+description = "[MACROS] Bring concurrency to your shiny new app with absolutely no hassle!"
+license = "MIT"
+homepage = "https://github.com/rookieCookies/autotask"
+repository = "https://github.com/rookieCookies/autotask"
+documentation = "https://docs.rs/autotask"
+readme = "README.md"
+publish = true
 
 [lib]
 proc-macro = true
 
 [dependencies]
-syn = { version = "*", features = ["full"] }
-quote = "*"
-change-case = "*"
+syn = { version = "2.0.48", features = ["full"] }
+quote = "1.0.35"
+change-case = "0.2.0"

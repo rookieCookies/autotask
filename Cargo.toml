@@ -1,12 +1,15 @@
-workspace = { members = ["autotask-macros"] }
-
 [package]
 name = "autotask"
 version = "0.1.0"
 edition = "2021"
-
+description = "Bring concurrency to your shiny new app with absolutely no hassle!"
+license = "MIT"
+homepage = "https://github.com/rookieCookies/autotask"
+repository = "https://github.com/rookieCookies/autotask"
+documentation = "https://docs.rs/autotask"
+readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-once_cell = "*"
-autotask-macros = { path = "./autotask-macros" }
+once_cell = "1.19.0"
+autotask-macros = "0.1.0"
